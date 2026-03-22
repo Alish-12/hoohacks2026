@@ -6,8 +6,8 @@
   <h1 class="fridge-upload-title">Upload Your Fridge Photo</h1>
   <div class="fridge-upload-sub">Our AI will analyze your ingredients and find perfect recipes</div>
   <form id="upload-form" method="POST" action="{{ url_for('upload_image') }}" enctype="multipart/form-data" class="fridge-upload-form">
-    <label for="pdf-upload" class="fridge-upload-box">
-      <span class="fridge-upload-icon">
+    <label for="pdf-upload" class="fridge-upload-box" id="upload-box">
+      <span class="fridge-upload-icon" id="upload-icon">
         <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="28" cy="28" r="28" fill="url(#paint0_radial_1_2)"/>
           <path d="M28 38V18M28 18l-7 7M28 18l7 7" stroke="#e8445a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -19,11 +19,26 @@
           </defs>
         </svg>
       </span>
-      <span class="fridge-upload-box-content">
+      <span class="fridge-upload-box-content" id="upload-box-content">
         <span class="fridge-upload-box-title">Drop your fridge photo here</span>
         <span class="fridge-upload-box-sub">or click to browse from your device</span>
         <span class="fridge-upload-box-meta">PNG, JPG up to 10MB</span>
       </span>
+
+      <!-- Preview shown after file selected -->
+      <span id="upload-preview-wrap" style="display:none; flex-direction:column; align-items:center; gap:0.75rem;">
+        <img id="upload-preview-img" src="" alt="preview"
+             style="max-height:180px; max-width:100%; border-radius:12px; object-fit:cover; box-shadow:0 2px 12px rgba(0,0,0,0.10);">
+        <span id="upload-preview-name" style="font-size:0.85rem; color:#555;"></span>
+        <span style="display:flex; align-items:center; gap:0.4rem; color:#22c55e; font-weight:700; font-size:1rem;">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="11" fill="#22c55e"/>
+            <path d="M6 11.5l3.5 3.5 6.5-7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Photo ready!
+        </span>
+      </span>
+
       <input type="file" id="pdf-upload" name="pdfFile" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required style="display:none">
     </label>
     <button type="submit" id="upload-btn" class="fridge-upload-btn">Upload photo</button>
@@ -35,11 +50,35 @@
       (function () {
         var form = document.getElementById('upload-form');
         var btn = document.getElementById('upload-btn');
-        if (!form || !btn) return;
-        form.addEventListener('submit', function () {
-          btn.disabled = true;
-          btn.textContent = 'Uploading…';
-        });
+        var input = document.getElementById('pdf-upload');
+        var previewWrap = document.getElementById('upload-preview-wrap');
+        var previewImg = document.getElementById('upload-preview-img');
+        var previewName = document.getElementById('upload-preview-name');
+        var boxContent = document.getElementById('upload-box-content');
+        var uploadIcon = document.getElementById('upload-icon');
+
+        if (input) {
+          input.addEventListener('change', function () {
+            var file = input.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              previewImg.src = e.target.result;
+              previewName.textContent = file.name;
+              boxContent.style.display = 'none';
+              uploadIcon.style.display = 'none';
+              previewWrap.style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        if (form && btn) {
+          form.addEventListener('submit', function () {
+            btn.disabled = true;
+            btn.textContent = 'Uploading…';
+          });
+        }
       })();
     </script>
 {% endblock %}

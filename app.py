@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.utils import secure_filename
 import os
 import re
@@ -45,7 +45,7 @@ def _text_color_for_bg(rgb: str) -> str:
     return '#111' if luminance > 0.6 else '#fff'
 
 app = Flask(__name__, static_folder='src', static_url_path='', template_folder='templates')
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-fridge-chef-change-me')
 
@@ -74,7 +74,6 @@ def _cached_photo_path(slug: str, ext: str = 'jpg') -> str:
 
 
 def fetch_unsplash_photo(query: str, slug_hint: str = None):
-    """Fetch a photo from Unsplash for `query` and cache it locally. Returns web path or None."""
     key = os.environ.get('UNSPLASH_ACCESS_KEY')
     if not key or not query:
         return None
@@ -115,12 +114,6 @@ def _ensure_recipe_generated_dir():
 
 
 def _default_local_photo():
-    """Return a local cached photo path if available, or None.
-
-    If `seed` is provided, choose a deterministic file based on the seed so
-    different recipes can pick different fallback photos instead of reusing
-    the same file every time.
-    """
     return _default_local_photo_for_seed(None)
 
 
@@ -134,14 +127,12 @@ def _default_local_photo_for_seed(seed: str = None):
             h = int(hashlib.sha1(seed.encode('utf-8')).hexdigest(), 16)
             idx = h % len(files)
             return f"/img/generated/photos/{files[idx]}"
-        # no seed: return a random-looking pick (first by default)
         return f"/img/generated/photos/{files[0]}"
     except Exception:
         return None
 
 
 def generate_recipe_svg(title: str, subtitle: str = ''):
-    """Generate a simple SVG for a recipe title and return the web path."""
     if not title:
         return None
     slug = _slugify(title)
@@ -155,7 +146,6 @@ def generate_recipe_svg(title: str, subtitle: str = ''):
     title_text = title.title()
     subtitle_text = (subtitle or '').strip()
 
-    # compose SVG with headline and optional subline
     if subtitle_text:
         svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
   <rect width="100%" height="100%" rx="18" ry="18" fill="{bg}" />
@@ -177,7 +167,6 @@ def generate_recipe_svg(title: str, subtitle: str = ''):
 
 
 def _extract_primary_ings(ingredient_text: str, max_tokens: int = 2) -> str:
-    """Extract up to `max_tokens` candidate ingredient words from free-form ingredient text."""
     if not ingredient_text:
         return ''
     toks = re.split(r'[^A-Za-z0-9]+', ingredient_text.lower())
@@ -195,13 +184,11 @@ def _extract_primary_ings(ingredient_text: str, max_tokens: int = 2) -> str:
 
 
 def _build_photo_queries_for_item(item: dict) -> list:
-    """Return a prioritized list of photo search queries for a recipe dict."""
     title = (item.get('recipe_title') or '').strip()
     category = (item.get('category') or '').strip()
     matched = item.get('matched_ingredients') or []
     ingredient_text = (item.get('ingredient_text') or '').strip()
 
-    # prefer matched fridge ingredients (if present), otherwise extract from ingredient_text
     if matched:
         ing_terms = ' '.join([str(x).strip() for x in matched[:2] if x])
     else:
@@ -222,7 +209,6 @@ def _build_photo_queries_for_item(item: dict) -> list:
     if ing_terms:
         queries.append(ing_terms)
     queries.append(f"food {title}" if title else 'food')
-    # final fallback handled elsewhere
     return queries
 
 
@@ -236,7 +222,7 @@ def _try_queries_for_photo(queries: list, slug_hint: str = None):
             continue
     return None
 
-# Form field name -> CSV column (boolean)
+
 DIETARY_FILTER_MAP = {
     'vegan': 'is_vegan',
     'vegetarian': 'is_vegetarian',
@@ -274,13 +260,12 @@ def recipes_for_template(df_slice):
     present = [c for c in cols if c in df_slice.columns]
     sub = df_slice[present].copy()
     if 'description' in sub.columns:
-        sub['description'] = sub['description'].fillna('').astype(str).str.slice(0, 280)
+        sub['description'] = sub['description'].fillna('').astype(str)
     sub = sub.fillna('')
     return sub.to_dict('records')
 
 
 def ingredient_overlap_score(fridge_items, ingredient_text):
-    """Return (score, list of matched fridge terms) for recipe ingredient_text."""
     text = (ingredient_text or '').lower()
     matched = []
     score = 0
@@ -305,10 +290,6 @@ def ingredient_overlap_score(fridge_items, ingredient_text):
 
 
 def top_fridge_recipes(filtered_df, fridge_items, n=TOP_FRIDGE_MATCHES):
-    """
-    Rank filtered recipes by overlap between fridge_items and ingredient_text.
-    Returns list of dicts with match_score and matched_ingredients.
-    """
     if not fridge_items or filtered_df.empty:
         return []
 
@@ -317,18 +298,13 @@ def top_fridge_recipes(filtered_df, fridge_items, n=TOP_FRIDGE_MATCHES):
         return []
 
     def score_row(text):
-
-
         if pd.isna(text):
             text = ''
         return ingredient_overlap_score(fridge_items, str(text))
 
-
-
     packed = df['ingredient_text'].apply(score_row)
     df['_match_score'] = packed.apply(lambda x: x[0])
     df['_matched'] = packed.apply(lambda x: x[1])
-
 
     df = df.sort_values('_match_score', ascending=False)
     top = df.head(n)
@@ -339,7 +315,7 @@ def top_fridge_recipes(filtered_df, fridge_items, n=TOP_FRIDGE_MATCHES):
             'recipe_title': row.get('recipe_title', ''),
             'category': row.get('category', ''),
             'subcategory': row.get('subcategory', ''),
-            'description': str(row.get('description', ''))[:280],
+            'description': str(row.get('description', '')),
             'difficulty': row.get('difficulty', ''),
             'match_score': int(row['_match_score']),
             'matched_ingredients': row['_matched'],
@@ -379,7 +355,35 @@ def select_filters():
     if not session.get(SESSION_UPLOAD_OK):
         flash('Upload a fridge photo first — that unlocks the next step.')
         return redirect(url_for('find_recipe'))
-    return render_template('selectFilters.html')
+    return render_template('selectFilters.html', fridge_ingredients=session.get(SESSION_FRIDGE_INGREDIENTS) or [])
+
+
+@app.route('/validate_ingredient', methods=['POST'])
+def validate_ingredient():
+    data = request.get_json()
+    ingredient = (data.get('ingredient') or '').strip()
+    if not ingredient:
+        return jsonify({'valid': False})
+
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
+        return jsonify({'valid': True})
+
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+        response = client.chat.completions.create(
+            model='gpt-4o-mini',
+            messages=[{
+                'role': 'user',
+                'content': f'Is "{ingredient}" a food ingredient or cooking item? Reply only "yes" or "no".'
+            }],
+            max_tokens=3
+        )
+        answer = response.choices[0].message.content.strip().lower()
+        return jsonify({'valid': answer.startswith('yes')})
+    except Exception:
+        return jsonify({'valid': True})
 
 
 @app.route('/results', methods=['GET', 'POST'])
@@ -402,10 +406,15 @@ def results():
     total = len(filtered)
     limited = filtered.head(RESULTS_DISPLAY_LIMIT)
     recipes = recipes_for_template(limited)
-    # full potential recipes list
     potential_recipes = recipes_for_template(filtered)
 
     fridge_items = session.get(SESSION_FRIDGE_INGREDIENTS) or []
+    kept = request.form.get('fridge_ingredients_kept', '') if request.method == 'POST' else ''
+    if kept:
+        fridge_items = [i.strip() for i in kept.split(',') if i.strip()]
+    extra_ingredients = request.form.get('extra_ingredients', '') if request.method == 'POST' else ''
+    if extra_ingredients:
+        fridge_items = fridge_items + [i.strip() for i in extra_ingredients.split(',') if i.strip()]
     fridge_note = session.get(SESSION_FRIDGE_NOTE, '')
     fridge_demo = session.get(SESSION_FRIDGE_DEMO, False)
     show_fridge_panel = SESSION_FRIDGE_INGREDIENTS in session
@@ -422,17 +431,13 @@ def results():
     }
     active_filters = [labels[k] for k, v in selections.items() if v == 'Yes']
 
-    # Fetch images for recipes shown on the page. We prefer Unsplash photos and
-    # always fall back to a photographic image (generic food) instead of text SVGs.
     try:
-        # Deduplicate recipe lists by title to avoid repeated identical cards
         def _dedupe_by_title(lst):
             out = []
             seen = set()
             for item in lst:
                 t = (item.get('recipe_title') or '').strip().lower()
                 if not t:
-                    # keep untitled items
                     out.append(item)
                     continue
                 if t in seen:
@@ -445,7 +450,6 @@ def results():
         recipes = _dedupe_by_title(recipes)
         potential_recipes = _dedupe_by_title(potential_recipes)
 
-        # warm a generic food photo to use as a last-resort fallback
         generic_food = fetch_unsplash_photo('food', 'food') or _default_local_photo()
 
         def _ensure_photo_for_item(item, slug_hint=None, seed=None):
@@ -455,7 +459,6 @@ def results():
             queries = _build_photo_queries_for_item(item)
             photo = _try_queries_for_photo(queries, slug_hint or title)
             if not photo:
-                # seeded deterministic local photo so different titles get different fallbacks
                 return _default_local_photo_for_seed(seed or (slug_hint or title)) or generic_food
             return photo
 
@@ -468,7 +471,6 @@ def results():
         for p in potential_recipes[:RESULTS_DISPLAY_LIMIT]:
             p['image_url'] = _ensure_photo_for_item(p, slug_hint=p.get('recipe_title'), seed=p.get('recipe_title'))
     except Exception:
-        # don't fail rendering if Unsplash calls or file writes fail
         pass
 
     return render_template(
@@ -487,62 +489,52 @@ def results():
         top_fridge_count=TOP_FRIDGE_MATCHES,
     )
 
+
 @app.route('/upload', methods=['POST'])
 def upload_image():
-    """Handle image file upload from form"""
     try:
         if 'pdfFile' not in request.files:
             return "No file provided", 400
-        
+
         file = request.files['pdfFile']
-        
+
         if file.filename == '':
             return "No file selected", 400
-        
+
         ext = os.path.splitext(file.filename)[1].lower()
         if ext not in ALLOWED_IMAGE_EXTENSIONS:
             return "Only JPEG and PNG files are allowed", 400
-        
-        # Create uploads folder if it doesn't exist
+
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        
-        # Save the file (secure name; phones often use .JPG / .PNG)
+
         filename = secure_filename(file.filename)
         if not filename:
             return "Invalid file name", 400
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
-        
+
         print(f"File saved: {filepath}")
-        
+
         try:
             analysis = analyze_fridge_image(filepath)
         except Exception as exc:
             print(f"Fridge AI error: {exc}")
-            flash((
-                "Could not analyze the image. Check OPENAI_API_KEY and your network, "
-                "or try again in a moment."
-            ))
+            flash("Could not analyze the image. Check OPENAI_API_KEY and your network, or try again in a moment.")
             return redirect(url_for('find_recipe'))
 
         if not analysis.get('is_fridge'):
-            flash(
-                "That photo doesn’t look like the inside of a fridge. "
-                "Please upload a clear photo of your refrigerator contents."
-            )
+            flash("That photo doesn't look like the inside of a fridge. Please upload a clear photo of your refrigerator contents.")
             return redirect(url_for('find_recipe'))
 
         session[SESSION_FRIDGE_INGREDIENTS] = analysis.get('ingredients') or []
         session[SESSION_FRIDGE_NOTE] = analysis.get('short_notes', '')
         session[SESSION_FRIDGE_DEMO] = bool(analysis.get('demo'))
 
-        # Fetch ingredient photos for detected items and cache their URLs in session
         try:
             ings = session.get(SESSION_FRIDGE_INGREDIENTS) or []
             thumbs = {}
             for ing in ings:
                 try:
-                    # try ingredient-specific photo, fall back to generic food image
                     photo = fetch_unsplash_photo(ing, ing)
                     if not photo:
                         photo = fetch_unsplash_photo(f'food {ing}', ing)
@@ -558,13 +550,11 @@ def upload_image():
 
         session[SESSION_UPLOAD_OK] = True
         return redirect(url_for('select_filters'))
-    
+
     except Exception as e:
         print(f"Upload error: {e}")
-        return f"Upload failed: {str(e)}", 500 
-    
+        return f"Upload failed: {str(e)}", 500
 
-    
 
 if __name__ == '__main__':
     app.run(debug=True, port=1025)

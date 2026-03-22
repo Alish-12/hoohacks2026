@@ -10,15 +10,19 @@
     <div class="filters-ingredients-box">
         <span class="filters-ingredients-check">✔️</span>
         <span class="filters-ingredients-label">We found these ingredients:</span>
-        <span class="filters-ingredients-list">
+        <span class="filters-ingredients-list" id="fridge-pills-container">
             {% for ing in fridge_ingredients %}
-                <span class="filters-ingredient-pill">{{ ing }}</span>
+                <span class="filters-ingredient-pill removable-pill" data-ing="{{ ing }}">
+                    {{ ing }} <span class="pill-x">×</span>
+                </span>
             {% endfor %}
         </span>
     </div>
+    <input type="hidden" name="fridge_ingredients_kept" id="fridge-ingredients-kept"
+           value="{{ fridge_ingredients | join(',') }}" form="filters-form-el">
     {% endif %}
 
-    <form method="post" action="{{ url_for('results') }}" class="filters-form">
+    <form method="post" action="{{ url_for('results') }}" class="filters-form" id="filters-form-el">
         <div class="filters-card-grid">
             <label class="filters-card"><span class="filters-card-icon">🌱</span> Vegetarian
                 <select name="vegetarian" class="filters-card-select"><option value="No">No</option><option value="Yes">Yes</option></select>
@@ -41,25 +45,190 @@
             <label class="filters-card"><span class="filters-card-icon">✡️</span> Kosher
                 <select name="kosher" class="filters-card-select"><option value="No">No</option><option value="Yes">Yes</option></select>
             </label>
-            <!-- Add more cards as needed -->
         </div>
+
+        <div class="filters-extra-ingredients">
+            <h3 class="filters-extra-title">Add Additional Ingredients?</h3>
+            <div class="filters-extra-input-row">
+                <input type="text" id="extra-ingredient-input" placeholder="Enter ingredient" class="filters-extra-input">
+                <button type="button" id="extra-ingredient-add" class="filters-extra-add-btn">Add</button>
+            </div>
+            <p id="extra-ingredient-error" class="filters-extra-error" style="display:none;"></p>
+            <div id="extra-ingredient-pills" class="filters-extra-pills"></div>
+            <input type="hidden" name="extra_ingredients" id="extra-ingredients-hidden" value="">
+        </div>
+
         <div class="filters-submit-row">
             <button type="submit" class="filters-submit-btn">Continue</button>
         </div>
     </form>
 </section>
-        <script>
-            // Ensure the Enter selections button submits the form (workaround for any UI interferers)
-            (function(){
-                const btn = document.querySelector('.filters-submit-btn');
-                const form = document.querySelector('.filters-form');
-                if(btn && form){
-                    btn.addEventListener('click', function(e){
-                        // in case some JS prevented default, force submission
-                        try{ console.log('filters submit clicked'); }catch(e){}
-                        form.submit();
-                    });
+
+<style>
+.filters-extra-ingredients {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+.filters-extra-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    color: #1a1a2e;
+}
+.filters-extra-input-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+.filters-extra-input {
+    flex: 1;
+    padding: 0.75rem 1.1rem;
+    border-radius: 12px;
+    border: none;
+    background: #f2f2f2;
+    font-size: 0.95rem;
+    outline: none;
+}
+.filters-extra-add-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    border: none;
+    background: #e8445a;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+.filters-extra-error {
+    color: #e8445a;
+    font-size: 0.85rem;
+    margin: 0.5rem 0 0;
+}
+.filters-extra-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+.extra-pill {
+    background: #fde8eb;
+    color: #e8445a;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.extra-pill-x {
+    cursor: pointer;
+    font-weight: 700;
+    opacity: 0.7;
+}
+.extra-pill-x:hover { opacity: 1; }
+.pill-x {
+    cursor: pointer;
+    margin-left: 4px;
+    font-weight: 700;
+    opacity: 0.7;
+}
+.pill-x:hover { opacity: 1; }
+</style>
+
+<script>
+    (function(){
+        const btn = document.querySelector('.filters-submit-btn');
+        const form = document.querySelector('.filters-form');
+        if(btn && form){
+            btn.addEventListener('click', function(e){
+                form.submit();
+            });
+        }
+
+        // Removable fridge ingredient pills
+        const keptInput = document.getElementById('fridge-ingredients-kept');
+        function updateKept() {
+            if (!keptInput) return;
+            const remaining = [...document.querySelectorAll('.removable-pill')]
+                .map(p => p.getAttribute('data-ing'));
+            keptInput.value = remaining.join(',');
+        }
+        document.querySelectorAll('.removable-pill').forEach(pill => {
+            pill.querySelector('.pill-x').addEventListener('click', function() {
+                pill.remove();
+                updateKept();
+            });
+        });
+
+        // Extra ingredients
+        const addBtn = document.getElementById('extra-ingredient-add');
+        const input = document.getElementById('extra-ingredient-input');
+        const pillsContainer = document.getElementById('extra-ingredient-pills');
+        const hidden = document.getElementById('extra-ingredients-hidden');
+        const error = document.getElementById('extra-ingredient-error');
+        let extras = [];
+
+        function updateHidden() {
+            hidden.value = extras.join(',');
+        }
+
+        function addPill(val) {
+            if (extras.includes(val.toLowerCase())) return;
+            extras.push(val.toLowerCase());
+            const pill = document.createElement('span');
+            pill.className = 'extra-pill';
+            pill.innerHTML = `${val} <span class="extra-pill-x">×</span>`;
+            pill.querySelector('.extra-pill-x').addEventListener('click', function() {
+                extras = extras.filter(e => e !== val.toLowerCase());
+                pill.remove();
+                updateHidden();
+            });
+            pillsContainer.appendChild(pill);
+            updateHidden();
+            input.value = '';
+        }
+
+        async function addIngredient() {
+            const val = input.value.trim();
+            if (!val || val.length < 2) {
+                error.textContent = '❌ Please enter something.';
+                error.style.display = 'block';
+                return;
+            }
+
+            addBtn.disabled = true;
+            addBtn.textContent = '...';
+
+            try {
+                const res = await fetch('/validate_ingredient', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ingredient: val})
+                });
+                const data = await res.json();
+                if (data.valid) {
+                    error.style.display = 'none';
+                    addPill(val);
+                } else {
+                    error.textContent = '❌ Error: that is not a valid food ingredient. Please try something else.';
+                    error.style.display = 'block';
                 }
-            })();
-        </script>
+            } catch(e) {
+                addPill(val);
+            }
+
+            addBtn.disabled = false;
+            addBtn.textContent = 'Add';
+        }
+
+        addBtn.addEventListener('click', addIngredient);
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); addIngredient(); }
+        });
+    })();
+</script>
 {% endblock %}
