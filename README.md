@@ -1,78 +1,110 @@
 # SnapshotChef 📸🍳
 
-An AI-powered web app that analyzes your fridge and suggests recipes based on what's inside.
+> Snap your fridge. Get a recipe. Waste less food.
 
-## How It Works
+SnapshotChef is an AI-powered web app built at HooHacks 2026 that analyzes your fridge photo and suggests personalized recipes based on what you actually have — complete with dietary filters and real food photos.
 
-1. **Upload a fridge photo** — Take a photo of the inside of your fridge
-2. **AI analyzes ingredients** — OpenAI's vision model identifies what's in your fridge
-3. **Set dietary filters** — Choose from vegan, vegetarian, gluten-free, dairy-free, nut-free, halal, or kosher
-4. **Get recipe matches** — See personalized recipe suggestions ranked by ingredient overlap, with food photos powered by Unsplash
+---
 
-## Tech Stack
+## ✨ Features
 
-- **Backend:** Python, Flask
-- **AI:** OpenAI API (vision model for fridge analysis)
-- **Images:** Unsplash API
-- **Data:** Pandas + recipes.csv dataset
-- **Frontend:** HTML, CSS, JavaScript (Jinja2 templates)
+- 📷 **Fridge photo upload** — drag & drop or click to browse
+- 🧠 **AI ingredient detection** — OpenAI's vision model identifies what's in your fridge
+- 🥗 **Dietary filters** — vegan, vegetarian, gluten-free, dairy-free, nut-free, halal, kosher
+- 🍳 **Smart recipe matching** — recipes ranked by ingredient overlap with what you have
+- 🖼️ **Food photography** — beautiful recipe photos powered by the Unsplash API
+- ➕ **Add extra ingredients** — type in anything extra you have on hand
+- ❌ **Remove ingredients** — remove anything the AI got wrong
 
-## Setup
+---
 
-1. Clone the repository:
+## 🚀 How It Works
+
+1. **Upload a fridge photo** — take a clear photo of the inside of your fridge
+2. **AI analyzes it** — OpenAI's vision model identifies your ingredients
+3. **Set your preferences** — choose dietary restrictions and add any extra ingredients
+4. **Get matches** — see recipes ranked by how well they match what you have
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python, Flask |
+| AI | OpenAI API (GPT-4o-mini vision) |
+| Images | Unsplash API |
+| Data | Pandas + recipes.csv |
+| Frontend | HTML, CSS, JavaScript, Jinja2 |
+
+---
+
+## ⚙️ Setup
+
+**1. Clone the repo**
 ```bash
-   git clone https://github.com/Alish-12/hoohacks2026.git
-   cd hoohacks2026/my-website
+git clone https://github.com/Alish-12/hoohacks2026.git
+cd hoohacks2026/my-website
 ```
 
-2. Create and activate a virtual environment:
+**2. Create a virtual environment**
 ```bash
-   python3 -m venv venv
-   source venv/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-3. Install dependencies:
+**3. Install dependencies**
 ```bash
-   pip3 install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
-4. Create a `.env` file in `my-website/`:
+**4. Create a `.env` file in `my-website/`**
 ```
-   OPENAI_API_KEY=your_openai_key_here
-   UNSPLASH_ACCESS_KEY=your_unsplash_key_here
+OPENAI_API_KEY=your_openai_key_here
+UNSPLASH_ACCESS_KEY=your_unsplash_key_here
 ```
 
-5. Run the app:
+**5. Run the app**
 ```bash
-   python3 app.py
+python3 app.py
 ```
 
-6. Open your browser and go to `http://127.0.0.1:1025`
+**6. Open your browser**
+```
+http://127.0.0.1:1025
+```
 
-## Project Structure
+---
+
+## 📁 Project Structure
 ```
 my-website/
-├── app.py              # Flask backend
-├── fridge_ai.py        # OpenAI vision analysis
-├── recipes.csv         # Recipe dataset
+├── app.py                  # Flask backend & routes
+├── fridge_ai.py            # OpenAI vision analysis
+├── recipes.csv             # Recipe dataset
 ├── requirements.txt
-├── templates/          # HTML templates
+├── templates/
 │   ├── base.html
-│   ├── home.html
-│   ├── findRecipe.html
-│   ├── selectFilters.html
-│   └── results.html
+│   ├── home.html           # Upload page
+│   ├── selectFilters.html  # Dietary preferences
+│   └── results.html        # Recipe results
 ├── src/
 │   ├── css/
 │   ├── js/
 │   └── img/
-└── uploads/            # Uploaded fridge photos
+└── uploads/                # Uploaded fridge photos
 ```
 
-## Built at HooHacks 2026 🎉
+---
 
-Made by the SnapshotChef team at the University of Virginia.
+## 👩‍💻 Team
 
-- vnm3nw@virginia.edu
-- ctm4nu@virginia.edu
-- eaz9pn@virginia.edu
+Built with ❤️ at **HooHacks 2026** — University of Virginia
+
+| Name | Email |
+|---|---|
+| Alicia Yoo | vnm3nw@virginia.edu |
+| Tracy Do | ctm4nu@virginia.edu |
+| Anna Wilcomes | eaz9pn@virginia.edu |
+
+---
