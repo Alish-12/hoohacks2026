@@ -7,9 +7,7 @@
     {% if show_fridge_panel %}
     <div class="fridge-ai-box">
         <h2 class="fridge-ai-box__title">What we saw in your fridge</h2>
-        {% if fridge_demo %}
-            <p class="fridge-ai-box__demo"><strong>Demo mode:</strong> set <code>OPENAI_API_KEY</code> for real vision analysis.</p>
-        {% endif %}
+        {# Demo mode message removed #}
         {% if fridge_note %}
             <p class="fridge-ai-box__note">{{ fridge_note }}</p>
         {% endif %}

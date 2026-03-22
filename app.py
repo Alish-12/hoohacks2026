@@ -247,7 +247,7 @@ DIETARY_FILTER_MAP = {
     'kosher': 'is_kosher',
 }
 
-RESULTS_DISPLAY_LIMIT = 100
+RESULTS_DISPLAY_LIMIT = 10
 
 
 def get_recipes():

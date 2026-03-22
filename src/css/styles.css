@@ -1,3 +1,200 @@
+/* Fridge upload Figma styles */
+.fridge-upload-hero {
+    padding: 48px 0 0 0;
+    text-align: center;
+    background: linear-gradient(180deg, #fff6f4 0%, #fff 40%);
+}
+.fridge-upload-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 10px 0;
+    letter-spacing: -1px;
+}
+.fridge-upload-sub {
+    color: #666;
+    font-size: 1.18rem;
+    margin-bottom: 32px;
+}
+.fridge-upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+.fridge-upload-box {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    background: #fff;
+    border: 2.5px dashed #ffd6e3;
+    border-radius: 18px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    padding: 32px 38px;
+    margin-bottom: 0;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    max-width: 600px;
+    width: 100%;
+    justify-content: center;
+}
+.fridge-upload-box:hover, .fridge-upload-box:focus-within {
+    border-color: #f4587d;
+}
+.fridge-upload-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+}
+.fridge-upload-box-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+.fridge-upload-box-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #222;
+}
+.fridge-upload-box-sub {
+    color: #888;
+    font-size: 1.05rem;
+}
+.fridge-upload-box-meta {
+    color: #b13ba3;
+    font-size: 1.1rem;
+    margin-top: 8px;
+    font-weight: 500;
+}
+.fridge-upload-btn {
+    margin-top: 10px;
+    padding: 0.75rem 2.2rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    background: #f4587d;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(244, 88, 125, 0.18);
+    transition: background-color 0.15s, transform 0.12s;
+}
+.fridge-upload-btn:hover {
+    background: #e8445a;
+    transform: translateY(-1px);
+}
+/* Dietary filters Figma styles */
+.filters-hero {
+    padding: 36px 0 0 0;
+    text-align: center;
+}
+.filters-title {
+    font-size: 2.6rem;
+    font-weight: 800;
+    margin: 0 0 8px 0;
+    letter-spacing: -1px;
+}
+.filters-sub {
+    color: #666;
+    font-size: 1.25rem;
+    margin-bottom: 32px;
+}
+.filters-ingredients-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    padding: 18px 28px;
+    margin: 0 auto 32px auto;
+    max-width: 700px;
+    font-size: 1.1rem;
+    gap: 12px;
+}
+.filters-ingredients-check {
+    color: #e8445a;
+    font-size: 1.5rem;
+    margin-right: 6px;
+}
+.filters-ingredients-label {
+    font-weight: 700;
+    margin-right: 8px;
+}
+.filters-ingredients-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+.filters-ingredient-pill {
+    background: #ffe6eb;
+    color: #e8445a;
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+.filters-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px 22px;
+    margin: 0 auto 32px auto;
+    max-width: 900px;
+}
+.filters-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    padding: 22px 18px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 1.13rem;
+    font-weight: 700;
+    gap: 10px;
+    border: 2px solid #fff;
+    transition: border-color 0.15s;
+}
+.filters-card:hover, .filters-card:focus-within {
+    border-color: #f4587d;
+}
+.filters-card-icon {
+    font-size: 1.5rem;
+    margin-bottom: 2px;
+}
+.filters-card-select {
+    margin-top: 6px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    padding: 6px 12px;
+    background: #faf7fa;
+    font-weight: 500;
+}
+.filters-submit-row {
+    text-align: center;
+    margin: 0 auto 0 auto;
+}
+.filters-submit-btn {
+    margin-top: 10px;
+    padding: 0.75rem 2.2rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    background: #f4587d;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(244, 88, 125, 0.18);
+    transition: background-color 0.15s, transform 0.12s;
+}
+.filters-submit-btn:hover {
+    background: #e8445a;
+    transform: translateY(-1px);
+}
 /* Smooth cross-page navigation (Chrome 126+); harmless elsewhere */
 @view-transition {
     navigation: auto;
@@ -397,6 +594,67 @@ form button[type="submit"]:disabled {
 .results-count {
     margin-bottom: 1.25rem;
 }
+
+/* Hero / homepage styles */
+.hero-hero {
+    padding: 48px 18px 80px;
+    background: linear-gradient(180deg, #fff6f4 0%, #fff 40%);
+}
+.hero-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    text-align: center;
+}
+.hero-step {
+    display: inline-block;
+    background: #fff1f3;
+    color: #e34f73;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+.hero-title {
+    font-size: clamp(1.9rem, 4.5vw, 3rem);
+    margin: 6px 0 8px;
+    font-weight: 800;
+}
+.hero-sub {
+    color: #666;
+    margin: 0 0 22px;
+}
+.upload-box {
+    display: inline-grid;
+    gap: 10px;
+    grid-template-columns: 56px 1fr;
+    align-items: center;
+    width: min(820px, 92%);
+    padding: 34px 22px;
+    border-radius: 14px;
+    border: 2px dashed rgba(180,30,60,0.12);
+    background: #fff;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+    margin: 0 auto 18px;
+}
+.upload-icon {
+    font-size: 28px;
+    width: 56px;
+    height: 56px;
+    display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(180deg,#ffefef,#fff2f4);
+}
+.upload-text strong {font-size:1.05rem}
+.upload-hint {color:#888;font-size:0.95rem;margin-top:6px}
+.upload-meta {grid-column:1/-1;color:#a19;opacity:0.9;font-size:0.9rem;margin-top:6px}
+
+.features-grid {
+    display:flex;gap:18px;justify-content:center;margin-top:28px;flex-wrap:wrap
+}
+.feature-card {width:220px;background:#fff;border-radius:12px;padding:18px 16px;box-shadow:0 6px 18px rgba(0,0,0,0.04);text-align:left}
+.feature-icon {font-size:26px;margin-bottom:8px}
+.feature-card h4 {margin:0 0 6px;font-size:1rem}
+.feature-card p {margin:0;color:#666;font-size:0.95rem}
 
 .results-empty {
     padding: 1rem;

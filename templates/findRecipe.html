@@ -1,16 +1,34 @@
 {% extends "base.html" %}
 {% block title %}Fridge Chef — Find a recipe{% endblock %}
-{% block header_title %}Find a recipe{% endblock %}
+{% block header_title %}{% endblock %}
 {% block content %}
-        <section>
-            <h2>Fridge recipe generator</h2>
-            <p>Upload a clear photo of the <strong>inside of your fridge</strong> (JPG or PNG). We use AI to confirm it’s a fridge and to read visible ingredients, then you’ll pick dietary filters. Without <code>OPENAI_API_KEY</code>, demo ingredients are used. Use <strong>Start over</strong> to return home.</p>
-            <form id="upload-form" method="POST" action="{{ url_for('upload_image') }}" enctype="multipart/form-data">
-                <label for="pdf-upload">Select a picture of your fridge (JPG or PNG):</label>
-                <input type="file" id="pdf-upload" name="pdfFile" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
-                <button type="submit" id="upload-btn">Upload photo</button>
-            </form>
-        </section>
+<section class="fridge-upload-hero">
+  <h1 class="fridge-upload-title">Upload Your Fridge Photo</h1>
+  <div class="fridge-upload-sub">Our AI will analyze your ingredients and find perfect recipes</div>
+  <form id="upload-form" method="POST" action="{{ url_for('upload_image') }}" enctype="multipart/form-data" class="fridge-upload-form">
+    <label for="pdf-upload" class="fridge-upload-box">
+      <span class="fridge-upload-icon">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="28" cy="28" r="28" fill="url(#paint0_radial_1_2)"/>
+          <path d="M28 38V18M28 18l-7 7M28 18l7 7" stroke="#e8445a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <radialGradient id="paint0_radial_1_2" cx="0" cy="0" r="1" gradientTransform="matrix(0 28 -28 0 28 28)" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#fff6f4"/>
+              <stop offset="1" stop-color="#fff0f5"/>
+            </radialGradient>
+          </defs>
+        </svg>
+      </span>
+      <span class="fridge-upload-box-content">
+        <span class="fridge-upload-box-title">Drop your fridge photo here</span>
+        <span class="fridge-upload-box-sub">or click to browse from your device</span>
+        <span class="fridge-upload-box-meta">PNG, JPG up to 10MB</span>
+      </span>
+      <input type="file" id="pdf-upload" name="pdfFile" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required style="display:none">
+    </label>
+    <button type="submit" id="upload-btn" class="fridge-upload-btn">Upload photo</button>
+  </form>
+</section>
 {% endblock %}
 {% block scripts %}
     <script>

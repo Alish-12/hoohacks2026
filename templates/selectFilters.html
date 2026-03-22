@@ -1,60 +1,53 @@
 {% extends "base.html" %}
 {% block title %}Fridge Chef — Dietary filters{% endblock %}
-{% block header_title %}Dietary filters{% endblock %}
+{% block header_title %}{% endblock %}
 {% block content %}
-        <section class="filters-section">
-            <p class="filters-intro">Your fridge photo is uploaded — this is the next step. Choose dietary restrictions below. Use <strong>Start over</strong> anytime to return home and clear your session (including filters).</p>
-            <form method="post" action="{{ url_for('results') }}" class="filters-form">
-            <div class="filter-grid">
-                <label class="filter-field">Vegan
-                    <select name="vegan" class="filter-select">
-                        <option value="No">no</option>
-                        <option value="Yes">yes</option>
-                    </select>
-                </label>
-                <label class="filter-field">Vegetarian
-                    <select name="vegetarian" class="filter-select">
-                        <option value="No">no</option>
-                        <option value="Yes">yes</option>
-                    </select>
-                </label>
-                <label class="filter-field">Gluten-free
-                    <select name="gluten_free" class="filter-select">
-                        <option value="No">no</option>
-                        <option value="Yes">yes</option>
-                    </select>
-                </label>
-                <label class="filter-field">Dairy-free
-                    <select name="dairy_free" class="filter-select">
-                        <option value="No">no</option>
-                        <option value="Yes">yes</option>
-                    </select>
-                </label>
-                <label class="filter-field">Nut-free
-                    <select name="nut_free" class="filter-select">
-                        <option value="No">no</option>
-                        <option value="Yes">yes</option>
-                    </select>
-                </label>
-                <label class="filter-field">Halal
-                    <select name="halal" class="filter-select">
-                        <option value="No">no</option>
-                        <option value="Yes">yes</option>
-                    </select>
-                </label>
-                <label class="filter-field">Kosher
-                    <select name="kosher" class="filter-select">
-                        <option value="No">no</option>
-                        <option value="Yes">yes</option>
-                    </select>
-                </label>
-            </div>
-            <h2 class="filters-submit-heading">Enter selections</h2>
-            <p class="filters-submit-wrap">
-                <button type="submit" class="filters-submit-btn">Enter selections</button>
-            </p>
-            </form>
-        </section>
+<section class="filters-hero">
+    <h1 class="filters-title">Set Your Preferences</h1>
+    <div class="filters-sub">Select any dietary restrictions or preferences</div>
+
+    {% if fridge_ingredients %}
+    <div class="filters-ingredients-box">
+        <span class="filters-ingredients-check">✔️</span>
+        <span class="filters-ingredients-label">We found these ingredients:</span>
+        <span class="filters-ingredients-list">
+            {% for ing in fridge_ingredients %}
+                <span class="filters-ingredient-pill">{{ ing }}</span>
+            {% endfor %}
+        </span>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('results') }}" class="filters-form">
+        <div class="filters-card-grid">
+            <label class="filters-card"><span class="filters-card-icon">🌱</span> Vegetarian
+                <select name="vegetarian" class="filters-card-select"><option value="No">No</option><option value="Yes">Yes</option></select>
+            </label>
+            <label class="filters-card"><span class="filters-card-icon">🌿</span> Vegan
+                <select name="vegan" class="filters-card-select"><option value="No">No</option><option value="Yes">Yes</option></select>
+            </label>
+            <label class="filters-card"><span class="filters-card-icon">🌾</span> Gluten-Free
+                <select name="gluten_free" class="filters-card-select"><option value="No">No</option><option value="Yes">Yes</option></select>
+            </label>
+            <label class="filters-card"><span class="filters-card-icon">🥛</span> Dairy-Free
+                <select name="dairy_free" class="filters-card-select"><option value="No">No</option><option value="Yes">Yes</option></select>
+            </label>
+            <label class="filters-card"><span class="filters-card-icon">🥜</span> Nut-Free
+                <select name="nut_free" class="filters-card-select"><option value="No">No</option><option value="Yes">Yes</option></select>
+            </label>
+            <label class="filters-card"><span class="filters-card-icon">🕌</span> Halal
+                <select name="halal" class="filters-card-select"><option value="No">No</option><option value="Yes">Yes</option></select>
+            </label>
+            <label class="filters-card"><span class="filters-card-icon">✡️</span> Kosher
+                <select name="kosher" class="filters-card-select"><option value="No">No</option><option value="Yes">Yes</option></select>
+            </label>
+            <!-- Add more cards as needed -->
+        </div>
+        <div class="filters-submit-row">
+            <button type="submit" class="filters-submit-btn">Continue</button>
+        </div>
+    </form>
+</section>
         <script>
             // Ensure the Enter selections button submits the form (workaround for any UI interferers)
             (function(){
