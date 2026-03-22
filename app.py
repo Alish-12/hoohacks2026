@@ -336,10 +336,6 @@ def legacy_select_filters():
 
 @app.route('/')
 def home():
-    # Clear only application-specific keys but preserve flashed messages
-    for k in (SESSION_UPLOAD_OK, SESSION_DIETARY_FILTERS, SESSION_FRIDGE_INGREDIENTS,
-              SESSION_FRIDGE_NOTE, SESSION_FRIDGE_DEMO, SESSION_FRIDGE_THUMBS):
-        session.pop(k, None)
     return render_template('home.html')
 
 
@@ -496,60 +492,41 @@ def results():
 @app.route('/upload', methods=['POST'])
 def upload_image():
     try:
-        if 'pdfFile' not in request.files:
-            flash('Please upload an image before analyzing.')
-            return redirect(url_for('home'))
+        if 'pdfFile' not in request.files or request.files['pdfFile'].filename == '':
+            return redirect(url_for('home', error='no_file'))
 
         file = request.files['pdfFile']
-
-        if file.filename == '':
-            flash('Please select an image to upload.')
-            return redirect(url_for('home'))
-
         ext = os.path.splitext(file.filename)[1].lower()
         if ext not in ALLOWED_IMAGE_EXTENSIONS:
-            flash('Only JPEG and PNG files are allowed. Please upload a supported image.')
-            return redirect(url_for('home'))
+            return redirect(url_for('home', error='bad_type'))
 
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
         filename = secure_filename(file.filename)
         if not filename:
-            return "Invalid file name", 400
+            return redirect(url_for('home', error='no_file'))
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
-
         print(f"File saved: {filepath}")
 
         try:
             analysis = analyze_fridge_image(filepath)
         except Exception as exc:
             print(f"Fridge AI error: {exc}")
-            flash("Could not analyze the image. Check OPENAI_API_KEY and your network, or try again in a moment.")
-            return redirect(url_for('home'))
+            return redirect(url_for('home', error='ai_fail'))
 
         if not analysis.get('is_fridge'):
-            flash("That photo doesn't look like the inside of a fridge. Please upload a clear photo of your refrigerator contents.")
-            return redirect(url_for('home'))
+            return redirect(url_for('home', error='not_fridge'))
 
         session[SESSION_FRIDGE_INGREDIENTS] = analysis.get('ingredients') or []
         session[SESSION_FRIDGE_NOTE] = analysis.get('short_notes', '')
         session[SESSION_FRIDGE_DEMO] = bool(analysis.get('demo'))
-
-        # To avoid long blocking delays during upload, skip synchronous
-        # remote thumbnail fetching here. Fetching photos can be done
-        # asynchronously later if needed. This keeps the upload fast.
-        try:
-            session[SESSION_FRIDGE_THUMBS] = {}
-        except Exception:
-            session[SESSION_FRIDGE_THUMBS] = {}
-
+        session[SESSION_FRIDGE_THUMBS] = {}
         session[SESSION_UPLOAD_OK] = True
         return redirect(url_for('select_filters'))
 
     except Exception as e:
         print(f"Upload error: {e}")
-        return f"Upload failed: {str(e)}", 500
+        return redirect(url_for('home', error='ai_fail'))
 
 
 if __name__ == '__main__':

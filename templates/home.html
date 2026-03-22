@@ -43,6 +43,9 @@
                 <input type="file" id="pdf-upload" name="pdfFile" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required style="display:none">
             </label>
 
+            <div id="upload-warning" style="display:none; background:#ffecee; color:#b32136; padding:12px 16px; border-radius:8px; margin-bottom:12px; font-weight:600; box-shadow:0 2px 6px rgba(0,0,0,0.05);">
+                Please select a photo to analyze.
+            </div>
             <div style="height:18px"></div>
             <button type="submit" id="upload-btn" class="cta-button" style="border: none; width: 100%; cursor: pointer;">Analyze Photo</button>
         </form>
@@ -78,6 +81,22 @@
     var previewImg = document.getElementById('upload-preview-img');
     var previewName = document.getElementById('upload-preview-name');
     var boxContentWrapper = document.getElementById('upload-box-content-wrapper');
+    var warn = document.getElementById('upload-warning');
+
+    var urlParams = new URLSearchParams(window.location.search);
+    var errorMap = {
+        'no_file': 'Please select a photo before analyzing.',
+        'bad_type': 'Only JPEG and PNG files are allowed.',
+        'not_fridge': "That photo doesn't look like the inside of a fridge. Please upload a clear fridge photo.",
+        'ai_fail': 'Could not analyze the image. Please try again.'
+    };
+    var err = urlParams.get('error');
+    if (err && errorMap[err] && warn) {
+        warn.textContent = errorMap[err];
+        warn.style.display = 'block';
+        setTimeout(function () { warn.style.display = 'none'; }, 5000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     if (input) {
         input.addEventListener('change', function () {
@@ -89,6 +108,7 @@
                 previewName.textContent = file.name;
                 boxContentWrapper.style.display = 'none';
                 previewWrap.style.display = 'flex';
+                if (warn) warn.style.display = 'none';
             };
             reader.readAsDataURL(file);
         });
@@ -98,7 +118,11 @@
         form.addEventListener('submit', function (e) {
             if (!input || !input.files || input.files.length === 0) {
                 e.preventDefault();
-                alert('Please select a photo first!');
+                if (warn) {
+                    warn.textContent = 'Please select a photo before analyzing.';
+                    warn.style.display = 'block';
+                    setTimeout(function () { warn.style.display = 'none'; }, 4000);
+                }
                 return;
             }
             btn.disabled = true;
