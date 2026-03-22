@@ -336,7 +336,10 @@ def legacy_select_filters():
 
 @app.route('/')
 def home():
-    session.clear()
+    # Clear only application-specific keys but preserve flashed messages
+    for k in (SESSION_UPLOAD_OK, SESSION_DIETARY_FILTERS, SESSION_FRIDGE_INGREDIENTS,
+              SESSION_FRIDGE_NOTE, SESSION_FRIDGE_DEMO, SESSION_FRIDGE_THUMBS):
+        session.pop(k, None)
     return render_template('home.html')
 
 
@@ -494,16 +497,19 @@ def results():
 def upload_image():
     try:
         if 'pdfFile' not in request.files:
-            return "No file provided", 400
+            flash('Please upload an image before analyzing.')
+            return redirect(url_for('home'))
 
         file = request.files['pdfFile']
 
         if file.filename == '':
-            return "No file selected", 400
+            flash('Please select an image to upload.')
+            return redirect(url_for('home'))
 
         ext = os.path.splitext(file.filename)[1].lower()
         if ext not in ALLOWED_IMAGE_EXTENSIONS:
-            return "Only JPEG and PNG files are allowed", 400
+            flash('Only JPEG and PNG files are allowed. Please upload a supported image.')
+            return redirect(url_for('home'))
 
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -520,31 +526,21 @@ def upload_image():
         except Exception as exc:
             print(f"Fridge AI error: {exc}")
             flash("Could not analyze the image. Check OPENAI_API_KEY and your network, or try again in a moment.")
-            return redirect(url_for('find_recipe'))
+            return redirect(url_for('home'))
 
         if not analysis.get('is_fridge'):
             flash("That photo doesn't look like the inside of a fridge. Please upload a clear photo of your refrigerator contents.")
-            return redirect(url_for('find_recipe'))
+            return redirect(url_for('home'))
 
         session[SESSION_FRIDGE_INGREDIENTS] = analysis.get('ingredients') or []
         session[SESSION_FRIDGE_NOTE] = analysis.get('short_notes', '')
         session[SESSION_FRIDGE_DEMO] = bool(analysis.get('demo'))
 
+        # To avoid long blocking delays during upload, skip synchronous
+        # remote thumbnail fetching here. Fetching photos can be done
+        # asynchronously later if needed. This keeps the upload fast.
         try:
-            ings = session.get(SESSION_FRIDGE_INGREDIENTS) or []
-            thumbs = {}
-            for ing in ings:
-                try:
-                    photo = fetch_unsplash_photo(ing, ing)
-                    if not photo:
-                        photo = fetch_unsplash_photo(f'food {ing}', ing)
-                    if not photo:
-                        photo = fetch_unsplash_photo('food', 'food')
-                    if photo:
-                        thumbs[str(ing)] = photo
-                except Exception:
-                    continue
-            session[SESSION_FRIDGE_THUMBS] = thumbs
+            session[SESSION_FRIDGE_THUMBS] = {}
         except Exception:
             session[SESSION_FRIDGE_THUMBS] = {}
 
