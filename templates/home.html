@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}SnapshotChef{% endblock %}
 {% block header_title %}Welcome to SnapshotChef{% endblock %}
+
 {% block content %}
 <section class="hero-hero">
     <div class="hero-inner">
@@ -8,19 +9,44 @@
         <h1 class="hero-title">Upload Your Fridge Photo</h1>
         <p class="hero-sub">Our AI will analyze your ingredients and find perfect recipes</p>
 
-        <a href="{{ url_for('find_recipe') }}" class="upload-box upload-box--large">
-            <div class="upload-icon-circle">
-                <div class="upload-icon">⬆️</div>
-            </div>
-            <div class="upload-text upload-text--center">
-                <strong class="upload-title">Drop your fridge photo here</strong>
-                <div class="upload-hint">or click to browse from your device</div>
-                <div class="upload-meta"><span class="meta-icon">🖼️</span> PNG, JPG, HEIC up to 10MB</div>
-            </div>
-        </a>
+        <form id="upload-form" method="POST" action="{{ url_for('upload_image') }}" enctype="multipart/form-data" class="fridge-upload-form">
+            <label for="pdf-upload" class="upload-box upload-box--large" id="upload-box" style="cursor: pointer; display: block;">
+                
+                <div id="upload-box-content-wrapper">
+                    <div class="upload-icon-circle" id="upload-icon">
+                        <div class="upload-icon">
+                            <svg width="40" height="40" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+                                <circle cx="28" cy="28" r="28" fill="#fff6f4"/>
+                                <path d="M28 38V18M28 18l-7 7M28 18l7 7" stroke="#e8445a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="upload-text upload-text--center" id="upload-box-content">
+                        <strong class="upload-title">Drop your fridge photo here</strong>
+                        <div class="upload-hint">or click to browse from your device</div>
+                        <div class="upload-meta"><span class="meta-icon">🖼️</span> PNG, JPG, HEIC up to 10MB</div>
+                    </div>
+                </div>
 
-        <div style="height:18px"></div>
-        <a class="cta-button" href="{{ url_for('select_filters') }}">Continue to Filters</a>
+                <div id="upload-preview-wrap" style="display:none; flex-direction:column; align-items:center; gap:0.75rem; padding: 20px;">
+                    <img id="upload-preview-img" src="" alt="preview"
+                         style="max-height:180px; max-width:100%; border-radius:12px; object-fit:cover; box-shadow:0 2px 12px rgba(0,0,0,0.10);">
+                    <span id="upload-preview-name" style="font-size:0.85rem; color:#555;"></span>
+                    <span style="display:flex; align-items:center; gap:0.4rem; color:#22c55e; font-weight:700; font-size:1rem;">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="11" cy="11" r="11" fill="#22c55e"/>
+                            <path d="M6 11.5l3.5 3.5 6.5-7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Photo ready!
+                    </span>
+                </div>
+
+                <input type="file" id="pdf-upload" name="pdfFile" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required style="display:none">
+            </label>
+            
+            <div style="height:18px"></div>
+            <button type="submit" id="upload-btn" class="cta-button" style="border: none; width: 100%; cursor: pointer;">Analyze Photo & Continue</button>
+        </form>
 
         <div class="features-grid">
             <div class="feature-card">
@@ -41,4 +67,40 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var form = document.getElementById('upload-form');
+    var btn = document.getElementById('upload-btn');
+    var input = document.getElementById('pdf-upload');
+    var previewWrap = document.getElementById('upload-preview-wrap');
+    var previewImg = document.getElementById('upload-preview-img');
+    var previewName = document.getElementById('upload-preview-name');
+    var boxContentWrapper = document.getElementById('upload-box-content-wrapper');
+
+    if (input) {
+      input.addEventListener('change', function () {
+        var file = input.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          previewImg.src = e.target.result;
+          previewName.textContent = file.name;
+          boxContentWrapper.style.display = 'none';
+          previewWrap.style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (form && btn) {
+      form.addEventListener('submit', function () {
+        btn.disabled = true;
+        btn.textContent = 'Analyzing Ingredients...';
+      });
+    }
+  })();
+</script>
 {% endblock %}
