@@ -72,3 +72,6 @@ my-website/
 ## Built at HooHacks 2026 🎉
 
 Made by the SnapshotChef team at the University of Virginia.
+vnm3nw@virginia.edu
+ctm4nu@virginia.edu
+eaz9pn@virginia.edu
