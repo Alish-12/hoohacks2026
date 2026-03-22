@@ -1,140 +1,156 @@
 {% extends "base.html" %}
 {% block title %}Fridge Chef — Results{% endblock %}
-{% block header_title %}Recipe results{% endblock %}
+{% block header_title %}Your Recipe Matches{% endblock %}
 {% block content %}
-        <section class="results-section">
-            {% if show_fridge_panel %}
-            <div class="fridge-ai-box">
-                <h2 class="fridge-ai-box__title">What we saw in your fridge</h2>
-                {% if fridge_demo %}
-                    <p class="fridge-ai-box__demo"><strong>Demo mode:</strong> set the <code>OPENAI_API_KEY</code> environment variable for real vision analysis.</p>
-                {% endif %}
-                {% if fridge_note %}
-                    <p class="fridge-ai-box__note">{{ fridge_note }}</p>
-                {% endif %}
-                <p class="fridge-ai-box__tags">
-                    {% if fridge_ingredients %}
-                        {% for ing in fridge_ingredients %}
-                            <span class="ing-tag">{{ ing }}</span>
-                        {% endfor %}
-                    {% else %}
-                        <span class="fridge-ai-box__empty">No specific ingredients were identified — matches below use best-effort ranking.</span>
-                    {% endif %}
-                </p>
-            </div>
+<section class="results-section">
 
-            <h3 class="listed-ingredients-heading">Listed ingredients:</h3>
+    {% if show_fridge_panel %}
+    <div class="fridge-ai-box">
+        <h2 class="fridge-ai-box__title">What we saw in your fridge</h2>
+        {% if fridge_demo %}
+            <p class="fridge-ai-box__demo"><strong>Demo mode:</strong> set <code>OPENAI_API_KEY</code> for real vision analysis.</p>
+        {% endif %}
+        {% if fridge_note %}
+            <p class="fridge-ai-box__note">{{ fridge_note }}</p>
+        {% endif %}
+        <p class="fridge-ai-box__tags">
             {% if fridge_ingredients %}
-                <ul class="listed-ingredients-list">
-                    {% for ing in fridge_ingredients %}
-                        <li>{{ ing }}</li>
-                    {% endfor %}
-                </ul>
+                {% for ing in fridge_ingredients %}
+                    <span class="ing-tag">{{ ing }}</span>
+                {% endfor %}
             {% else %}
-                <p>No ingredients listed.</p>
+                <span class="fridge-ai-box__empty">No specific ingredients identified.</span>
             {% endif %}
+        </p>
+    </div>
+
+    {% if top_fridge_recipes %}
+    <h2 class="results-fridge-heading">We found {{ top_fridge_recipes|length }} delicious recipes you can make!</h2>
+    <div class="results-cards">
+        {% for r in top_fridge_recipes %}
+        <div class="recipe-card">
+            {% if r.image_url %}
+                <img class="recipe-card__img" src="{{ r.image_url }}" alt="{{ r.recipe_title }}">
+            {% else %}
+                <div class="recipe-card__img recipe-card__img--placeholder">🍽️</div>
+            {% endif %}
+            {# match percentage removed per user request #}
+            <div class="recipe-card__body">
+                <h3 class="recipe-card__title">{{ r.recipe_title }}</h3>
+                <p class="recipe-card__meta">
+                    {% if r.difficulty %}<span>⏱ {{ r.difficulty }}</span>{% endif %}
+                    {% if r.category %}<span>🍴 {{ r.category }}</span>{% endif %}
+                </p>
+                {% if r.matched_ingredients %}
+                <p class="recipe-card__has">You have these ingredients:</p>
+                <p class="recipe-card__tags">
+                    {% for ing in r.matched_ingredients %}
+                        <span class="ing-tag">{{ ing }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+                {% if r.description %}
+                    <p class="recipe-card__desc">{{ r.description }}</p>
+                {% endif %}
             </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
 
-            <h2 class="results-fridge-heading">Top {{ top_fridge_count }} recipes for your fridge &amp; filters</h2>
-            <p class="results-fridge-sub">Ranked by overlap between these ingredients and each recipe’s ingredient list (within your dietary choices).</p>
+    <h2 class="results-more-heading">All matching recipes</h2>
+    <p class="results-count"><strong>{{ total_count }}</strong> recipe{{ 's' if total_count != 1 else '' }} match your filters.</p>
 
-            {% if top_fridge_recipes %}
-                <div class="cards-grid">
-                    {% for r in top_fridge_recipes %}
-                        <div class="recipe-card">
-                            <div class="match-badge">{{ r.match_score }}% Match</div>
-                            <div class="recipe-card__image">
-                                {% if r.image_url %}
-                                    <img src="{{ r.image_url }}" alt="{{ r.recipe_title }}">
-                                {% elif r.matched_ingredients and r.matched_ingredients|length > 0 %}
-                                    <img src="/img/generated/{{ r.matched_ingredients[0]|slugify }}.svg" alt="{{ r.matched_ingredients[0] }}">
-                                {% endif %}
-                            </div>
-                            <h3 class="recipe-card__title">{{ r.recipe_title }}</h3>
-                            <div class="recipe-card__meta">{{ r.category }}{% if r.subcategory and r.subcategory != r.category %} — {{ r.subcategory }}{% endif %}</div>
-                            <div class="recipe-tags">
-                                        {% for m in r.matched_ingredients %}
-                                            <span class="recipe-tag">
-                                                <img class="ing-thumb" src="/img/generated/{{ m|slugify }}.svg" alt="{{ m }}">{{ m }}
-                                            </span>
-                                        {% endfor %}
-                            </div>
-                        </div>
+    {% if total_count == 0 %}
+        <p class="results-empty">No recipes match those filters. Use <strong>Start over</strong> to try again.</p>
+    {% else %}
+        <div class="results-table-wrap">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Difficulty</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in recipes %}
+                    <tr>
+                        <td class="results-table__title">{{ r.recipe_title }}</td>
+                        <td>{{ r.category }}{% if r.subcategory and r.subcategory != r.category %} — {{ r.subcategory }}{% endif %}</td>
+                        <td>{{ r.difficulty }}</td>
+                        <td class="results-table__desc">{{ r.description }}</td>
+                    </tr>
                     {% endfor %}
-                </div>
-            {% else %}
-                <p class="results-empty">No recipes to rank (try relaxing dietary filters).</p>
-            {% endif %}
-            {% endif %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>
 
-            <h2 class="results-more-heading">Potential recipes</h2>
-            {% if potential_recipes %}
-                <div class="cards-grid">
-                    {% for p in potential_recipes %}
-                        <div class="recipe-card">
-                            <div class="recipe-card__image">
-                                {% if p.image_url %}
-                                    <img src="{{ p.image_url }}" alt="{{ p.recipe_title }}">
-                                {% elif p.matched_ingredients and p.matched_ingredients|length > 0 %}
-                                    <img src="/img/generated/{{ p.matched_ingredients[0]|slugify }}.svg" alt="{{ p.matched_ingredients[0] }}">
-                                {% elif fridge_ingredients and fridge_ingredients|length > 0 %}
-                                    <img src="/img/generated/{{ fridge_ingredients[0]|slugify }}.svg" alt="{{ fridge_ingredients[0] }}">
-                                {% endif %}
-                            </div>
-                            <h3 class="recipe-card__title">{{ p.recipe_title }}</h3>
-                            <div class="recipe-card__meta">{{ p.category }}</div>
-                            <div class="recipe-tags">
-                                {% if p.description %}<span class="recipe-tag">{{ p.description[:40] }}</span>{% endif %}
-                                {% if p.difficulty %}<span class="recipe-tag">{{ p.difficulty }}</span>{% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="results-empty">No potential recipes match those filters.</p>
-            {% endif %}
-
-            <h2 class="results-more-heading">All recipes matching your filters</h2>
-            <p class="results-summary">
-                {% if active_filters %}
-                    Recipes that match:
-                    <strong>{{ active_filters | join(', ') }}</strong>.
-                {% else %}
-                    No dietary restrictions selected — full filtered dataset.
-                {% endif %}
-            </p>
-            <p class="results-count">
-                <strong>{{ total_count }}</strong> recipe{{ 's' if total_count != 1 else '' }} match{{ '' if total_count == 1 else 'es' }} your filters.
-                {% if total_count > display_limit %}
-                    Showing the first <strong>{{ shown_count }}</strong> in the table below.
-                {% endif %}
-            </p>
-
-            {% if total_count == 0 %}
-                <p class="results-empty">No recipes in the dataset match those choices. Use <strong>Start over</strong> to reset and try different filters.</p>
-            {% else %}
-                <div class="results-table-wrap">
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Title</th>
-                                <th scope="col">Category</th>
-                                <th scope="col">Difficulty</th>
-                                <th scope="col">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for r in recipes %}
-                            <tr>
-                                <td class="results-table__title">{{ r.recipe_title }}</td>
-                                <td>{{ r.category }}{% if r.subcategory and r.subcategory != r.category %} — {{ r.subcategory }}{% endif %}</td>
-                                <td>{{ r.difficulty }}</td>
-                                <td class="results-table__desc">{{ r.description }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
-        </section>
+<style>
+.results-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0 2.5rem;
+}
+.recipe-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    background: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.recipe-card__img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+.recipe-card__img--placeholder {
+    background: #f3e8e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+}
+/* match badge removed */
+.recipe-card__body {
+    padding: 1rem;
+    flex: 1;
+}
+.recipe-card__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+}
+.recipe-card__meta {
+    font-size: 0.82rem;
+    color: #888;
+    margin: 0 0 0.6rem;
+    display: flex;
+    gap: 0.8rem;
+}
+.recipe-card__has {
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0.25rem;
+}
+.recipe-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
+}
+.recipe-card__desc {
+    font-size: 0.82rem;
+    color: #555;
+    margin: 0.5rem 0 0;
+}
+</style>
 {% endblock %}
