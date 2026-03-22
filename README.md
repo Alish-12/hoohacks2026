@@ -99,7 +99,7 @@ my-website/
 
 ## 👩‍💻 Team
 
-Built with ❤️ at **HooHacks 2026** — University of Virginia
+Built at **HooHacks 2026** — University of Virginia
 
 | Name | Email |
 |---|---|
